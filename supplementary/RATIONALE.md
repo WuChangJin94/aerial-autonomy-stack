@@ -17,8 +17,8 @@ This is the challenge—and good sport—of **full-stack integration** among:
 A summary of existing multi-drone flight stacks can be found in [Table II of this paper](https://arxiv.org/pdf/2303.18237). Notable ones are:
 
 - *Universidad Politécnica de Madrid (UPM)*'s [`aerostack2`](https://github.com/aerostack2/aerostack2) (multicopter-only)
-- *Czech Technical University in Prague (CTU)*'s [`mrs_uav_system`](https://github.com/ctu-mrs/mrs_uav_system) (ROS1, multicopter-only)
-- *Technische Universität (TU) Berlin*'s [`crazyswarm2`](https://github.com/IMRCLab/crazyswarm2) (crazyflie-only, indoor)
+- *Czech Technical University in Prague (CTU)*'s [`mrs_uav_system`](https://github.com/ctu-mrs/mrs_uav_system) (multicopter-only)
+- *Technische Universität (TU) Berlin*'s [`crazyswarm2`](https://github.com/IMRCLab/crazyswarm2) (indoor, crazyflie-only)
 - *Peking University*'s [`XTDrone`](https://github.com/robin-shaun/XTDrone) (PX4-only)
 
 A summary of aerial robotics simulators can be found in [Table IV of this paper](https://arxiv.org/pdf/2311.02296), these include:
@@ -40,6 +40,6 @@ For even more resources, check out [`aerial_robotic_landscape`](https://github.c
     - ROS2 intra-companion board messaging
     - XRCE-DDS (PX4), MAVROS (ArduPilot) autopilot-to-companion board ROS2 UDP bridge
     - GStreamer camera-to-companion board acquisition
-    - Zenoh inter-vehicle ROS2 bridge, with networking emulated by `docker network`
+    - Zenoh inter-vehicle ROS2 bridge, with networking over LAN (HITL) or emulated by `docker network` (SITL)
 
 [![Star History Chart](https://api.star-history.com/svg?repos=JacopoPan/aerial-autonomy-stack,robin-shaun/XTDrone,KumarRobotics/kr_autonomous_flight,ctu-mrs/mrs_uav_system,uzh-rpg/agilicious,CopterExpress/clover,caochao39/aerial_navigation_development_environment,aerostack2/aerostack2,IMRCLab/crazyswarm2&type=Date)](https://www.star-history.com/#JacopoPan/aerial-autonomy-stack&robin-shaun/XTDrone&KumarRobotics/kr_autonomous_flight&ctu-mrs/mrs_uav_system&uzh-rpg/agilicious&CopterExpress/clover&caochao39/aerial_navigation_development_environment&aerostack2/aerostack2&IMRCLab/crazyswarm2&Date&LogScale)

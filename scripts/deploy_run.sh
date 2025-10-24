@@ -18,7 +18,12 @@ HITL="${HITL:-false}" # Options: true, false (default)
 MODE_OPTS=""
 case "$MODE" in
   dev)
+    # In dev mode, resources and workspaces are mounted from the host
+    SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
     MODE_OPTS="--entrypoint /bin/bash"
+    MODE_OPTS+=" -v ${SCRIPT_DIR}/../aircraft/aircraft_resources/:/aas/aircraft_resources:cached"
+    MODE_OPTS+=" -v ${SCRIPT_DIR}/../aircraft/aircraft_ws/src:/aas/aircraft_ws/src:cached"
+    MODE_OPTS+=" -v ${SCRIPT_DIR}/../simulation/simulation_ws/src/ground_system_msgs:/aas/aircraft_ws/src/ground_system_msgs:cached"
     ;;
   *)
     MODE_OPTS=""
@@ -27,11 +32,33 @@ esac
 
 if [ "$HEADLESS" = "false" ]; then
   # Grant access to the X server
-   xhost +local:docker # Avoid this when building the TensorRT cache for the first time
+  xhost +local:docker # Avoid this when building the TensorRT cache for the first time
 fi
 
-# Launch the aircraft container in detached mode
-docker run -d -t \
+if [ "$HITL" = "true" ]; then
+  DOCKER_RUN_FLAGS="-it --rm" # Interactive mode with auto-remove
+else
+  DOCKER_RUN_FLAGS="-d -t" # Detached mode
+  if [[ "$MODE" == "dev" ]]; then
+    echo ""
+    echo "With MODE=dev, attach directly to the bash shell:"
+    echo ""
+    echo -e "\t docker exec -it aircraft-container_$DRONE_ID bash"
+  else
+    echo ""
+    echo "Attach to the Tmux session in the running 'aircraft-container':"
+    echo ""
+    echo -e "\t docker exec -it aircraft-container_$DRONE_ID tmux attach"
+  fi
+  echo ""
+  echo "To stop all containers and remove stopped containers:"
+  echo ""
+  echo -e '\t docker stop $(docker ps -q) && docker container prune'
+  echo ""
+fi
+
+# Launch the aircraft container
+docker run $DOCKER_RUN_FLAGS \
   --runtime nvidia \
   --volume /tmp/.X11-unix:/tmp/.X11-unix:rw --device /dev/dri --gpus all \
   --volume /tmp/argus_socket:/tmp/argus_socket \
@@ -46,23 +73,6 @@ docker run -d -t \
   -v ~/tensorrt_cache/:/tensorrt_cache \
   ${MODE_OPTS} \
   aircraft-image
-
-if [[ "$MODE" == "dev" ]]; then
-  echo ""
-  echo "With MODE=dev, attach directly to the bash shell:"
-  echo ""
-  echo -e "\t docker exec -it aircraft-container_$DRONE_ID bash"
-else
-  echo ""
-  echo "Attach to the Tmux session in the running 'aircraft-container':"
-  echo ""
-  echo -e "\t docker exec -it aircraft-container_$DRONE_ID tmux attach"
-fi
-echo ""
-echo "To stop all containers and remove stopped containers:"
-echo ""
-echo -e '\t docker stop $(docker ps -q) && docker container prune'
-echo ""
 
 # Check ONNX runtimes
 # MODE=dev HEADLESS=false ./deploy_run.sh

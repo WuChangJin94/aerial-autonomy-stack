@@ -305,7 +305,7 @@ Finally, on the simulation computer:
 HITL=true NUM_QUADS=2 NUM_VTOLS=0 AUTOPILOT=px4 SUBNET_PREFIX=192.168 ./sim_run.sh
 ```
 
-Once done, detach Tmux with `Ctrl + b`, then `d`; use `docker stop $(docker ps -q) && docker container prune` to stop and remove all containers
+Once done, detach Tmux (and remove the containers) with `Ctrl + b`, then `d`
 
 ---
 > You've done a man's job, sir. I guess you're through, huh?
