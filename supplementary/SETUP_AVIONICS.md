@@ -9,7 +9,7 @@ To upgrade to JetPack 6, download NVIDIA SDK Manager on the Ubuntu 22 host compu
 ```sh
 cd ~/Downloads
 sudo apt install ./sdkmanager_2.3.0-12626_amd64.deb 
-sdkmanager    # Log in with your https://developer.nvidia.com account 
+sdkmanager                          # Log in with your https://developer.nvidia.com account 
 ```
 
 - Put the Holybro Jetson baseboard in recovery mode with the dedicated switch
@@ -51,7 +51,7 @@ sudo /opt/nvidia/jetson-io/jetson-io.py
 #   -> "Save and reboot to reconfigure pins"
 #   -> Press any key to reboot
 
-sudo dmesg | grep -i imx219    # After reboot, this will show at least one imx219 successfully bound
+sudo dmesg | grep -i imx219         # After reboot, this will show at least one imx219 successfully bound
 
 # Inspect camera resolution and frame rate
 sudo apt update && sudo apt install -y v4l-utils
@@ -82,15 +82,15 @@ sudo apt-get update
 # Install Docker Engine
 sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 
-sudo docker run hello-world    # Test Docker is working
-sudo docker version    # Check version, 28.3.0 at the time of writing
+sudo docker run hello-world         # Test Docker is working
+sudo docker version                 # Check version, 28.3.0 at the time of writing
 
 # Remove the need to sudo the docker command
 sudo groupadd docker
 sudo usermod -aG docker $USER
-newgrp docker    # Reboot
+newgrp docker                       # Reboot
 
-docker run hello-world    # Test Docker is working without sudo
+docker run hello-world              # Test Docker is working without sudo
 ```
 
 Log in to the NVIDIA Registry:
@@ -100,9 +100,9 @@ Log in to the NVIDIA Registry:
 - Click "Generate API Key" -> "+ Generate Personal Key" for the "NCG Catalog" service, confirm, and copy the key.
 
 ```sh
-docker login nvcr.io    # To be able to reliably pull NVIDIA base images
-Username:    # type $oauthtoken
-Password:    # copy and paste the API key and press enter to pull base images from nvcr.io/
+docker login nvcr.io                # To be able to reliably pull NVIDIA base images
+Username:                           # type $oauthtoken
+Password:                           # copy and paste the API key and press enter to pull base images from nvcr.io/
 ```
 
 ```sh
@@ -114,7 +114,7 @@ sudo apt update && sudo apt install -y nvidia-container-toolkit
 sudo nvidia-ctk runtime configure --runtime=docker
 sudo systemctl restart docker
 
-docker info | grep -i runtime    # Check `nvidia` runtime is available
+docker info | grep -i runtime       # Check `nvidia` runtime is available
 
 docker run --rm --runtime=nvidia nvcr.io/nvidia/l4t-base:r36.2.0 nvidia-smi    # Test nvidia-smi works in a container with Linux4Tegra
 ```
@@ -126,7 +126,9 @@ Build the PX4 firmware in `simulation-image` for Pixhawk 6X
 ```sh
 # Check available PX4 targets
 docker run -it --rm --entrypoint bash simulation-image -c "cd /aas/github_apps/PX4-Autopilot && make list_config_targets"
+```
 
+```sh
 # Build PX4 for Pixhawk 6X (saved in the ~/Downloads folder)
 docker run -it --rm --entrypoint bash -v ~/Downloads:/temp simulation-image -c \
   "cd /aas/github_apps/PX4-Autopilot && make px4_fmu-v6x_default && cp build/px4_fmu-v6x_default/*.px4 /temp/"
@@ -137,11 +139,15 @@ Build the ArduPilot firmware in `simulation-image` for Pixhawk 6X
 ```sh
 # Check available ArduPilot targets
 docker run -it --rm --entrypoint bash simulation-image -c "cd /aas/github_apps/ardupilot && ./waf list_boards"
+```
 
+```sh
 # Build ArduCopter (quads) for Pixhawk 6X (saved in the ~/Downloads folder)
 docker run -it --rm --entrypoint bash -v ~/Downloads:/temp simulation-image -c \
   "cd /aas/github_apps/ardupilot && ./waf configure --board Pixhawk6X && ./waf copter && cp build/Pixhawk6X/bin/*.apj /temp/"
+```
 
+```sh
 # Build ArduPlane (VTOLs) for Pixhawk 6X (saved in the ~/Downloads folder)
 docker run -it --rm --entrypoint bash -v ~/Downloads:/temp simulation-image -c \
   "cd /aas/github_apps/ardupilot && ./waf configure --board Pixhawk6X && ./waf plane && cp build/Pixhawk6X/bin/*.apj /temp/"
@@ -197,7 +203,7 @@ param set MAV_SYS_ID 1
 param set UXRCE_DDS_DOM_ID 1
 
 # Optionally
-param set MAV_2_CONFIG 0    # Disable MAVLINK on Ethernet (so Ethernet is used for XRCE-DDS only), if needed, also check params MAV_0_CONFIG, MAV_1_CONFIG
+param set MAV_2_CONFIG 0        # Disable MAVLINK on Ethernet (so Ethernet is used for XRCE-DDS only), if needed, also check params MAV_0_CONFIG, MAV_1_CONFIG
 param set UXRCE_DDS_CFG 1000    # Use DDS over Ethernet
 ```
 

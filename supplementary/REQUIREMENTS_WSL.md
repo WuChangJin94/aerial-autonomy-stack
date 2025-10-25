@@ -14,10 +14,8 @@
 ```sh
 sudo apt update && sudo apt upgrade
 
-# Install X11 apps and xserver
-sudo apt install -y x11-apps x11-xserver-utils
-
-xclock    # Test: a new window with a clock should appear
+sudo apt install -y x11-apps x11-xserver-utils        # Install X11 apps and xserver
+xclock                                                # Test: a new window with a clock should appear
 ```
 
 > [!WARNING]
@@ -41,7 +39,7 @@ xclock    # Test: a new window with a clock should appear
 > exit
 > wsl --shutdown 
 > wsl ~
-> free -h    # Check the available memory and swap reflect .wslconfig
+> free -h                           # Check the available memory and swap reflect .wslconfig
 > ```
 
 ## Install the NVIDIA Driver in Windows 11
@@ -58,12 +56,11 @@ From PowerShell
 ```sh
 wsl ~
 
-nvidia-smi    # From WSL, check NVIDIA driver
-# These instructions are tested on Driver Version: 581.15, CUDA Version:13.0
+nvidia-smi                          # From WSL, check NVIDIA driver (these instructions are tested on Driver Version: 581.15, CUDA Version:13.0)
 
 sudo apt update && sudo apt install -y mesa-utils
 
-glxinfo -B    # Check the GPU is the OpenGL renderer
+glxinfo -B                          # Check the GPU is the OpenGL renderer
 ```
 
 ## Install Docker Engine and NVIDIA Container Toolkit inside WSLg
@@ -94,15 +91,15 @@ sudo apt-get update
 # Install Docker Engine
 sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 
-sudo docker run hello-world    # Test Docker is working
-sudo docker version    # Check version, 28.3.0 at the time of writing
+sudo docker run hello-world         # Test Docker is working
+sudo docker version                 # Check version, 28.3.0 at the time of writing
 
 # Remove the need to sudo the docker command
 sudo groupadd docker
 sudo usermod -aG docker $USER
-newgrp docker    # Reboot
+newgrp docker                       # Reboot
 
-docker run hello-world    # Test Docker is working without sudo
+docker run hello-world              # Test Docker is working without sudo
 ```
 
 Log in to the NVIDIA Registry:
@@ -112,9 +109,9 @@ Log in to the NVIDIA Registry:
 - Click "Generate API Key" -> "+ Generate Personal Key" for the "NCG Catalog" service, confirm, and copy the key.
 
 ```sh
-docker login nvcr.io    # To be able to reliably pull NVIDIA base images
-Username:    # type $oauthtoken
-Password:    # copy and paste (e.g. right-click once in PowerShell) the API key and press enter to pull base images from nvcr.io/
+docker login nvcr.io                # To be able to reliably pull NVIDIA base images
+Username:                           # type $oauthtoken
+Password:                           # copy and paste (e.g. right-click once in PowerShell) the API key and press enter to pull base images from nvcr.io/
 ```
 
 ```sh
@@ -126,9 +123,9 @@ sudo apt update && sudo apt install -y nvidia-container-toolkit
 sudo nvidia-ctk runtime configure --runtime=docker
 sudo systemctl restart docker
 
-docker info | grep -i runtime    # Check `nvidia` runtime is available
+docker info | grep -i runtime       # Check `nvidia` runtime is available
 
-docker run --rm --gpus all nvcr.io/nvidia/cuda:12.2.0-base-ubuntu22.04 nvidia-smi    # Test nvidia-smi works in a container with CUDA
+docker run --rm --gpus all nvcr.io/nvidia/cuda:12.2.0-base-ubuntu22.04 nvidia-smi        # Test nvidia-smi works in a container with CUDA
 ```
 
 ![wsl](https://github.com/user-attachments/assets/1b4a18c0-896f-4e5f-9186-72425ceeabac)

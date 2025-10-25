@@ -52,16 +52,14 @@ Read about the [*rationale*](/supplementary/RATIONALE.md) for AAS in the [`suppl
 > Windows 11 support is available *via* WSLg, read [`REQUIREMENTS_WSL.md`](/supplementary/REQUIREMENTS_WSL.md)
 
 ```sh
-sudo apt update && sudo apt install -y git git-lfs xterm xfonts-base    # Install dependencies (git, Git LFS, Xterm)
-git lfs install    # Without this, the `git clone` command will not download the large files in `simulation_resources/`
+sudo apt update && sudo apt install -y git git-lfs xterm xfonts-base
+git lfs install        # Without this, the `git clone` command will not download the large files in `simulation_resources/`
 
-# Clone this repo
 mkdir -p ~/git && cd ~/git
 git clone https://github.com/JacopoPan/aerial-autonomy-stack.git
 
-# Build the Docker images
 cd ~/git/aerial-autonomy-stack/scripts
-./sim_build.sh    # The first build takes ~25', subsequent ones will take seconds to minutes thanks to the Docker cache
+./sim_build.sh         # Build the Docker images, the first build takes ~25', subsequent ones will take seconds to minutes thanks to the Docker cache
 ```
 
 > Latest weekly builds with `sim_build.sh`: 
@@ -76,9 +74,8 @@ cd ~/git/aerial-autonomy-stack/scripts
 ## "How-to" Part 2: Simulation and Development
 
 ```sh
-# Start a simulation
 cd ~/git/aerial-autonomy-stack/scripts
-AUTOPILOT=px4 NUM_QUADS=1 NUM_VTOLS=1 WORLD=swiss_town ./sim_run.sh    # Check the script for more options (note: ArduPilot SITL takes ~40s to be ready to arm)
+AUTOPILOT=px4 NUM_QUADS=1 NUM_VTOLS=1 WORLD=swiss_town ./sim_run.sh    # Start a simulation, check the script for more options (note: ArduPilot SITL takes ~40s to be ready to arm)
 ```
 
 ![interface](https://github.com/user-attachments/assets/71b07851-42dd-45d4-a9f5-6b5b00cd85bc)
@@ -100,7 +97,7 @@ To advance the simulation in **discrete time steps**, e.g. 1s, from a terminal o
 docker exec simulation-container bash -c " \
   gz service -s /world/\$WORLD/control \
     --reqtype gz.msgs.WorldControl --reptype gz.msgs.Boolean \
-    --req 'multi_step: 250, pause: true'"   # Adjust multi_step based on the value of max_step_size in the world's .sdf (defaults: 250 for PX4, 1000 for ArduPilot)
+    --req 'multi_step: 250, pause: true'"                              # Adjust multi_step based on the value of max_step_size in the world's .sdf (defaults: 250 for PX4, 1000 for ArduPilot)
 ```
 
 To add or disable [**wind effects**](https://github.com/gazebosim/gz-sim/blob/gz-sim10/examples/worlds/wind.sdf), from a terminal on the host, run:
@@ -108,31 +105,32 @@ To add or disable [**wind effects**](https://github.com/gazebosim/gz-sim/blob/gz
 ```sh
 docker exec simulation-container bash -c " \
   gz topic -t /world/\$WORLD/wind/ -m gz.msgs.Wind \
-  -p 'linear_velocity: {x: 0.0 y: 3.0}, enable_wind: true'"    # Positive X blows from the West, positive Y blows from the South
+  -p 'linear_velocity: {x: 0.0 y: 3.0}, enable_wind: true'"            # Positive X blows from the West, positive Y blows from the South
 ```
 
 ```sh
 docker exec simulation-container bash -c " \
   gz topic -t /world/\$WORLD/wind/ -m gz.msgs.Wind \
-  -p 'enable_wind: false'"    # Disable WindEffects
+  -p 'enable_wind: false'"                                             # Disable WindEffects
 ```
 
 ### Fly a Mission
 
+On the host computer:
 ```sh
 cd ~/git/aerial-autonomy-stack/scripts
-AUTOPILOT=px4 NUM_QUADS=1 ./sim_run.sh    # Or `ardupilot`, or `NUM_VTOLS=1`
+AUTOPILOT=px4 NUM_QUADS=1 ./sim_run.sh                                 # Or `ardupilot`, or `NUM_VTOLS=1`
 ```
 
+In aircraft 1's Xterm terminal:
 ```sh
-# In aircraft 1's Xterm terminal
 ros2 run mission mission --conops yalla \
-  --ros-args -r __ns:=/Drone$DRONE_ID -p use_sim_time:=true    # This mission is a simple takeoff, followed by an orbit, and landing for any vehicle
+  --ros-args -r __ns:=/Drone$DRONE_ID -p use_sim_time:=true            # This mission is a simple takeoff, followed by an orbit, and landing for any vehicle
 ```
 
+Finally, in the simulation's Xterm terminal:
 ```sh
-# Finally, in the simulation's Xterm terminal
-/aas/simulation_resources/patches/plot_logs.sh    # Analyze the flight logs at http://42.42.1.99:5006/browse or in MAVExplorer
+/aas/simulation_resources/patches/plot_logs.sh                         # Analyze the flight logs at http://42.42.1.99:5006/browse or in MAVExplorer
 ```
 
 To create a new mission, read the banner comments in [`ardupilot_interface.hpp`](/aircraft/aircraft_ws/src/autopilot_interface/src/ardupilot_interface.hpp) and [`px4_interface.hpp`](/aircraft/aircraft_ws/src/autopilot_interface/src/px4_interface.hpp) for command line examples of takeoff, orbit, reposition, offboard, land
@@ -147,25 +145,24 @@ Once flown from CLI, implemented your mission in [`MissionNode.conops_callback()
 > 
 > ```sh
 > cd ~/git/aerial-autonomy-stack/scripts
-> MODE=dev ./sim_run.sh    # Starts one simulation-image and one aircraft-image where the *_resources/ and *_ws/src/ folders are mounted from the host
+> MODE=dev ./sim_run.sh                               # Starts one simulation-image and one aircraft-image where the *_resources/ and *_ws/src/ folders are mounted from the host
 > ```
 > 
-> To build changes made **on the host** in either `simulation_ws/src` or `aircraft_ws/src`:
+> To build changes made **on the host** in either `simulation_ws/src` or `aircraft_ws/src` **in the simulation and/or in the aircraft container**:
 > 
 > ```sh
-> # In the simulation and/or in the aircraft container
-> cd /aas/simulation_ws/    # Or /aas/aircraft_ws/
+> cd /aas/simulation_ws/                              # Or /aas/aircraft_ws/
 > colcon build --symlink-install
 > ```
 > 
-> To start the simulation (by default, this is a single PX4 quad, configure using `sim_run.sh`):
+> To start the simulation, in the aircraft Xterm terminal:
 > 
 > ```sh
-> # In the aircraft container (note: start the aircraft first to pick up the camera stream)
 > tmuxinator start -p /aas/aircraft.yml.erb
 > ```
+> 
+> In the simulation Xterm terminal:
 > ```sh
-> # In the simulation container
 > tmuxinator start -p /aas/simulation.yml.erb
 > ```
 > 
@@ -247,7 +244,8 @@ Once flown from CLI, implemented your mission in [`MissionNode.conops_callback()
 > docker ps -a                          # List containers
 > docker stop $(docker ps -q)           # Stop all containers
 > docker container prune                # Remove all stopped containers
-> 
+> ```
+> ```sh
 > docker images                         # List images
 > docker image prune                    # Remove untagged images
 > docker rmi <image_name_or_id>         # Remove a specific image
@@ -265,23 +263,21 @@ Once flown from CLI, implemented your mission in [`MissionNode.conops_callback()
 > **To setup (i) JetPack 6, (ii) Docker Engine, (iii) NVIDIA Container Toolkit (with NVIDIA NGC API Key) on Orin, and (iv.a) PX4's DDS client or (iv.b) ArduPilot's MAVLink serial, read [`SETUP_AVIONICS.md`](/supplementary/SETUP_AVIONICS.md)**
 
 ```sh
-sudo apt update && sudo apt install -y git git-lfs    # Install dependencies (git, Git LFS)
-git lfs install    # Without this, the `git clone` command will not download the large files in `simulation_resources/`
+sudo apt update && sudo apt install -y git git-lfs
+git lfs install          # Without this, the `git clone` command will not download the large files in `simulation_resources/`
 
-# Clone this repo
 mkdir -p ~/git && cd ~/git
 git clone https://github.com/JacopoPan/aerial-autonomy-stack.git
 
-# On Jetson Orin NX, build for arm64 with TensorRT support
 cd ~/git/aerial-autonomy-stack/scripts
-./deploy_build.sh    # The first build takes ~1h (mostly to build onnxruntime-gpu from source)
+./deploy_build.sh        # On Jetson Orin NX, build for arm64 with TensorRT support, the first build takes ~1h (mostly to build onnxruntime-gpu from source)
 ```
 
 > Latest weekly build with `deploy_build.sh`:
 > [![aircraft-image arm64](https://github.com/JacopoPan/aerial-autonomy-stack/actions/workflows/weekly-aircraft-arm64-build.yml/badge.svg)](https://github.com/JacopoPan/aerial-autonomy-stack/actions/workflows/weekly-aircraft-arm64-build.yml)
 
+ On a Jetson Orin NX, start an aircraft-container (in detached mode):
 ```sh
-# On Jetson Orin NX, start an aircraft-container (in detached mode)
 DRONE_TYPE=quad AUTOPILOT=px4 DRONE_ID=1 CAMERA=true LIDAR=false ./deploy_run.sh
 ```
 
@@ -300,18 +296,17 @@ Set up a LAN with netmask `255.255.0.0` and an arbitrary `SUBNET_PREFIX` (e.g. `
 
 First, start all aircraft containers, one on each Jetson (e.g. *via* SSH):
 ```sh
-# On Jetson with IP [SUBNET_PREFIX].1.1
-HITL=true DRONE_ID=1 DRONE_TYPE=quad AUTOPILOT=px4 SUBNET_PREFIX=192.168 ./deploy_run.sh    # Add HEADLESS=false if a screen is connected to the Jetson
+# Jetson with IP [SUBNET_PREFIX].1.1
+HITL=true DRONE_ID=1 DRONE_TYPE=quad AUTOPILOT=px4 SUBNET_PREFIX=192.168 ./deploy_run.sh        # Add HEADLESS=false if a screen is connected to the Jetson
 ```
 
 ```sh
-# On Jetson with IP [SUBNET_PREFIX].1.2
+# Jetson with IP [SUBNET_PREFIX].1.2
 HITL=true DRONE_ID=2 DRONE_TYPE=quad AUTOPILOT=px4 SUBNET_PREFIX=192.168 ./deploy_run.sh
 ```
 
 Finally, on the simulation computer:
 ```sh
-# On amd64/RTX computer with IP [SUBNET_PREFIX].1.99
 HITL=true NUM_QUADS=2 NUM_VTOLS=0 AUTOPILOT=px4 SUBNET_PREFIX=192.168 ./sim_run.sh
 ```
 
