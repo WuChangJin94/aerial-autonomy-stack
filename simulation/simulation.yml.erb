@@ -93,7 +93,7 @@ windows:
           -I <%= sitl_instance %> --sysid <%= drone_id %>
           --add-param-file=/aas/simulation_resources/aircraft_models/<%= model_name %>/ardupilot-4.6.params
           -l $(awk -F "[><]" "/<spherical_coordinates>/,/<\/spherical_coordinates>/" /aas/simulation_resources/simulation_worlds/<%= world %>.sdf | awk -F "[><]" "/latitude_deg/ {print \$3}"),$(awk -F "[><]" "/<spherical_coordinates>/,/<\/spherical_coordinates>/" /aas/simulation_resources/simulation_worlds/<%= world %>.sdf | awk -F "[><]" "/longitude_deg/ {print \$3}"),$(awk -F "[><]" "/<spherical_coordinates>/,/<\/spherical_coordinates>/" /aas/simulation_resources/simulation_worlds/<%= world %>.sdf | awk -F "[><]" "/elevation/ {print \$3}"),0          
-          --out=udp:<%= subnet_prefix %>.1.<%= drone_id %>:<%= 22530 + sitl_instance %>
+          --out=udp:<%= subnet_prefix %>.1.<%= drone_id %>:8888
           --out=udp:127.0.0.1:<%= 21550 + sitl_instance %>
         - >
           mavproxy.py --state-basedir=/aas/ardu_sitl_<%= drone_id %>/mavproxy --master=udp:127.0.0.1:<%= 21550 + sitl_instance %> 
@@ -119,7 +119,7 @@ windows:
       layout: even-vertical
       panes:
         - "ros2 run ros_gz_bridge parameter_bridge /clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock"
-        - ros2 run ground_system oracle --num-drones <%=  num_quads + num_vtols %> --base-port 14540 --rate 1.0 <% if simulated_time == 'true' %> --ros-args -p use_sim_time:=True<% end %>
+        - ros2 run ground_system oracle --num-drones <%=  num_quads + num_vtols %> --ip 127.0.0.1 --base-port 14540 --rate 1.0 <% if simulated_time == 'true' %> --ros-args -p use_sim_time:=True<% end %>
         - zenoh-bridge-ros2dds -c /aas/simulation_resources/comms/zenoh_config_ground.json5
 
   - qgc:

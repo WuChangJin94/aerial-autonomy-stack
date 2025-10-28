@@ -53,7 +53,7 @@ sudo /opt/nvidia/jetson-io/jetson-io.py
 
 sudo dmesg | grep -i imx219         # After reboot, this will show at least one imx219 successfully bound
 
-# Inspect camera resolution and frame rate
+# Inspect device (e.g. /dev/video0) resolution and frame rate
 sudo apt update && sudo apt install -y v4l-utils
 v4l2-ctl --list-formats-ext -d /dev/video0 
 ```
