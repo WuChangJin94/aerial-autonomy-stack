@@ -22,6 +22,7 @@ https://github.com/user-attachments/assets/c194ada6-2996-4bfa-99e9-32b45e29281d
 - **Windows 11 compatibility** with GPU support *via* WSLg
 - **3D worlds** for perception-based simulation
 - Distributed, **Hardware-(Jetson-)in-the-loop (HITL) simulation** to test on-board compute and networking
+- **Dual network** in both SITL and HITL for synthetic sensor data (`SIM_SUBNET`) and inter-vehicle communication (`AIR_SUBNET`)
 - [Zenoh](https://github.com/eclipse-zenoh/zenoh-plugin-ros2dds) inter-vehicle ROS2 bridge
 - Support for [PX4 Offboard](https://docs.px4.io/main/en/flight_modes/offboard.html) mode (e.g. CTBR/`VehicleRatesSetpoint` for agile, GNSS-denied flight) 
 - Support for [ArduPilot Guided](https://ardupilot.org/copter/docs/ac2_guidedmode.html) mode (i.e. `setpoint_velocity`, `setpoint_accel` references)
@@ -62,12 +63,13 @@ cd ~/git/aerial-autonomy-stack/scripts
 ./sim_build.sh
 ```
 
-> Latest weekly builds with `sim_build.sh`: 
+> Latest weekly builds: 
 > [![simulation-image amd64](https://github.com/JacopoPan/aerial-autonomy-stack/actions/workflows/weekly-simulation-amd64-build.yml/badge.svg)](https://github.com/JacopoPan/aerial-autonomy-stack/actions/workflows/weekly-simulation-amd64-build.yml)
+> [![ground-image amd64](https://github.com/JacopoPan/aerial-autonomy-stack/actions/workflows/weekly-ground-amd64-build.yml/badge.svg)](https://github.com/JacopoPan/aerial-autonomy-stack/actions/workflows/weekly-ground-amd64-build.yml)
 > [![aircraft-image amd64](https://github.com/JacopoPan/aerial-autonomy-stack/actions/workflows/weekly-aircraft-amd64-build.yml/badge.svg)](https://github.com/JacopoPan/aerial-autonomy-stack/actions/workflows/weekly-aircraft-amd64-build.yml)
 
 > [!WARNING]
-> The 1st build takes ~45GB of space and ~25' with good internet (`Ctrl + c` and restart if needed)
+> The 1st build takes ~30GB of space and ~25' with good internet (`Ctrl + c` and restart if needed)
 
 ---
 
@@ -123,13 +125,12 @@ AUTOPILOT=px4 NUM_QUADS=1 ./sim_run.sh                                 # Or `ard
 
 In aircraft 1's Xterm terminal:
 ```sh
-ros2 run mission mission --conops yalla \
-  --ros-args -r __ns:=/Drone$DRONE_ID -p use_sim_time:=true            # This mission is a simple takeoff, followed by an orbit, and landing for any vehicle
+ros2 run mission mission --conops yalla --ros-args -r __ns:=/Drone$DRONE_ID -p use_sim_time:=true        # This mission is a simple takeoff, followed by an orbit, and landing for any vehicle
 ```
 
 Finally, in the simulation's Xterm terminal:
 ```sh
-/aas/simulation_resources/patches/plot_logs.sh                         # Analyze the flight logs at http://42.42.1.99:5006/browse or in MAVExplorer
+/aas/simulation_resources/patches/plot_logs.sh                         # Analyze the flight logs at http://10.42.90.100:5006/browse or in MAVExplorer
 ```
 
 To create a new mission, read the banner comments in [`ardupilot_interface.hpp`](/aircraft/aircraft_ws/src/autopilot_interface/src/ardupilot_interface.hpp) and [`px4_interface.hpp`](/aircraft/aircraft_ws/src/autopilot_interface/src/px4_interface.hpp) for command line examples of takeoff, orbit, reposition, offboard, land
@@ -140,17 +141,17 @@ Once flown from CLI, implemented your mission in [`MissionNode.conops_callback()
 > <details>
 > <summary><b>Development within Live Containers</b> <i>(click to expand)</i></summary>
 > 
-> Launching the `sim_run.sh` script with `MODE=dev`, does **not** start the simulation and mounts folders `[simulation|aircraft]_resources`, `[simulation|aircraft]_ws/src` as volumes to more easily track, commit, push changes while building and testing them within the containers:
+> Launching the `sim_run.sh` script with `DEV=true`, does **not** start the simulation and mounts folders `[aircraft|ground|simulation]_resources`, `[aircraft|ground]_ws/src` as volumes to more easily track, commit, push changes while building and testing them within the containers:
 > 
 > ```sh
 > cd ~/git/aerial-autonomy-stack/scripts
-> MODE=dev ./sim_run.sh                               # Starts one simulation-image and one aircraft-image where the *_resources/ and *_ws/src/ folders are mounted from the host
+> DEV=true ./sim_run.sh                               # Starts one simulation-image, one ground-image, and one aircraft-image where the *_resources/ and *_ws/src/ folders are mounted from the host
 > ```
 > 
-> To make changes **on the host** and build them **in the simulation and/or aircraft container**:
+> To make changes **on the host** and build them **in the aircraft and/or ground container**:
 > 
 > ```sh
-> cd /aas/simulation_ws/                              # Or cd /aas/aircraft_ws/
+> cd /aas/aircraft_ws/                                # Or cd /aas/ground_ws/
 > colcon build --symlink-install
 > ```
 > 
@@ -158,6 +159,11 @@ Once flown from CLI, implemented your mission in [`MissionNode.conops_callback()
 > 
 > ```sh
 > tmuxinator start -p /aas/aircraft.yml.erb
+> ```
+> 
+> In the ground Xterm terminal:
+> ```sh
+> tmuxinator start -p /aas/ground.yml.erb
 > ```
 > 
 > In the simulation Xterm terminal:
@@ -185,6 +191,13 @@ Once flown from CLI, implemented your mission in [`MissionNode.conops_callback()
 > │   │
 > │   └── aircraft.yml.erb            # Aircraft docker tmux entrypoint
 > │
+> ├── ground
+> │   ├── ground_ws
+> │   │   └── src
+> │   │       └── ground_system       # Publisher of topic `/tracks` broadcasted by Zenoh
+> │   │
+> │   └── ground.yml.erb              # Ground docker tmux entrypoint
+> │
 > ├── scripts
 > │   ├── docker
 > │   │   ├── Dockerfile.aircraft     # Docker image for aircraft simulation and deployment
@@ -210,10 +223,6 @@ Once flown from CLI, implemented your mission in [`MissionNode.conops_callback()
 >     │       ├── impalpable_greyness.sdf
 >     │       ├── shibuya_crossing.sdf
 >     │       └── swiss_town.sdf
->     │
->     ├── simulation_ws
->     │   └── src
->     │       └── ground_system        # Publisher of topic `/tracks` broadcasted by Zenoh
 >     │
 >     └── simulation.yml.erb           # Simulation docker tmux entrypoint
 > ```
@@ -286,28 +295,47 @@ DRONE_TYPE=quad AUTOPILOT=px4 DRONE_ID=1 CAMERA=true LIDAR=false ./deploy_run.sh
 ### HITL Simulation
 
 > [!NOTE]
-> Currently, HITL only includes the Jetson computers, support for Pixhawk is work-in-progress
+> Currently, HITL covers the Jetson compute<!-- and the inter-vehicle network -->, support for Pixhawk is work-in-progress
 
-Set up a LAN with netmask `255.255.0.0` and an arbitrary `SUBNET_PREFIX` (e.g. `192.168`) between:
+Set up a LAN with netmask `255.255.0.0` and an arbitrary `SIM_SUBNET` (e.g. `10.42`) between:
 
-- One simulation computer, with IP `[SUBNET_PREFIX].1.99`
-- `N` Jetson Baseboards with IPs `[SUBNET_PREFIX].1.1`, ..., `[SUBNET_PREFIX].1.N`
+- One simulation computer, with IP `[SIM_SUBNET].90.100`
+- `N` Jetson Baseboards with IPs `[SIM_SUBNET].90.1`, ..., `[SIM_SUBNET].90.N`
+
+<!-- 
+**Optionally**, set up a second LAN or [MANET](https://doodlelabs.com/product/nano/) with netmask `255.255.0.0` and `AIR_SUBNET` (e.g. `10.22`) between:
+
+- One ground computer, with IP `[AIR_SUBNET].90.101`
+- `N` Jetson Baseboards with IPs `[AIR_SUBNET].90.1`, ..., `[AIR_SUBNET].90.N` 
+-->
 
 First, start all aircraft containers, one on each Jetson (e.g. *via* SSH):
 ```sh
-# Jetson with IP [SUBNET_PREFIX].1.1
-HITL=true DRONE_ID=1 DRONE_TYPE=quad AUTOPILOT=px4 SUBNET_PREFIX=192.168 ./deploy_run.sh        # Add HEADLESS=false if a screen is connected to the Jetson
+# On the Jetson with IP ending in 90.1
+HITL=true GND_CONTAINER=false DRONE_ID=1 DRONE_TYPE=quad AUTOPILOT=px4 SIM_SUBNET=10.42 AIR_SUBNET=10.22 ./deploy_run.sh        # Add HEADLESS=false if a screen is connected to the Jetson
 ```
 
 ```sh
-# Jetson with IP [SUBNET_PREFIX].1.2
-HITL=true DRONE_ID=2 DRONE_TYPE=quad AUTOPILOT=px4 SUBNET_PREFIX=192.168 ./deploy_run.sh
+# On the Jetson with IP ending in 90.2
+HITL=true GND_CONTAINER=false DRONE_ID=2 DRONE_TYPE=quad AUTOPILOT=px4 SIM_SUBNET=10.42 AIR_SUBNET=10.22 ./deploy_run.sh
 ```
 
 Finally, on the simulation computer:
 ```sh
-HITL=true NUM_QUADS=2 NUM_VTOLS=0 AUTOPILOT=px4 SUBNET_PREFIX=192.168 ./sim_run.sh
+# Computer with IP ending in 90.100
+HITL=true GND_CONTAINER=false NUM_QUADS=2 NUM_VTOLS=0 AUTOPILOT=px4 SIM_SUBNET=10.42 AIR_SUBNET=10.22 ./sim_run.sh
 ```
+
+<!-- 
+To enable the Zenoh bridge between aircraft containers over the `AIR_SUBNET`, on the ground computer:
+```sh
+# TODO extend deploy_run.sh for ground-container
+HITL=true SIM_SUBNET=10.42 AIR_SUBNET=10.22 ./sim_run.sh
+``` 
+
+NOTE: running the previous 3 commands with GND_CONTAINER=false forces the Zenoh bridge over the `SIM_SUBNET` instead
+
+-->
 
 Once done, detach Tmux (and remove the containers) with `Ctrl + b`, then `d`
 
@@ -336,8 +364,6 @@ Once done, detach Tmux (and remove the containers) with `Ctrl + b`, then `d`
 <!-- 
 
 ## TODOs
-
-# Dual-network SITL and HITL
 
 [Gymnasium](https://github.com/Farama-Foundation/Gymnasium) RL interface
 

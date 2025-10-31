@@ -8,7 +8,7 @@ SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 
 if [ "${CLEAN_BUILD:-false}" = "true" ]; then
   rm -rf "${SCRIPT_DIR}/../github_clones"
-  docker rmi aircraft-image:latest simulation-image:latest || true
+  docker rmi aircraft-image:latest ground-image:latest simulation-image:latest || true
   docker builder prune -f # If CLEAN_BUILD is "true", rebuild everything from scratch
 fi
 
@@ -27,6 +27,8 @@ REPOS=( # Format: "URL;BRANCH;LOCAL_DIR_NAME"
   "https://github.com/ArduPilot/ardupilot.git;Copter-4.6.2;ardupilot"
   "https://github.com/ArduPilot/ardupilot_gazebo.git;main;ardupilot_gazebo"
   "https://github.com/PX4/flight_review.git;main;flight_review"
+  # Ground image
+  # n/a
   # Aircraft image
   "https://github.com/PX4/px4_msgs.git;release/1.16;px4_msgs"
   "https://github.com/eProsima/Micro-XRCE-DDS-Agent.git;master;Micro-XRCE-DDS-Agent"
@@ -58,7 +60,10 @@ if [ "$BUILD_DOCKER" = "true" ]; then
   # The first build takes ~15' and creates a 21GB image (8GB for ros-humble-desktop with nvidia runtime, 10GB for PX4 and ArduPilot SITL)
   docker build -t simulation-image -f "${SCRIPT_DIR}/docker/Dockerfile.simulation" "${SCRIPT_DIR}/.."
 
-  # The first build takes ~10' and creates a 16GB image (8GB for ros-humble-desktop with nvidia runtime, 7GB for YOLOv8, ONNX)
+  # The first build takes <5' and creates an 9GB image (8GB for ros-humble-desktop with nvidia runtime)
+  docker build -t ground-image -f "${SCRIPT_DIR}/docker/Dockerfile.ground" "${SCRIPT_DIR}/.."
+
+  # The first build takes ~10' and creates an 18GB image (8GB for ros-humble-desktop with nvidia runtime, 7GB for YOLOv8, ONNX)
   docker build -t aircraft-image -f "${SCRIPT_DIR}/docker/Dockerfile.aircraft" "${SCRIPT_DIR}/.."
 else
   echo -e "Skipping Docker builds"

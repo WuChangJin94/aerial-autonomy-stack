@@ -36,10 +36,11 @@ For even more resources, check out [`aerial_robotic_landscape`](https://github.c
 - [おまかせ](https://dhh.dk/2012/rails-is-omakase.html) **end-to-end**ness (from camera frames, to autopilot uORB/MAVLink commands)
 - **Recentness** (break and fix, rather than carrying technical [debt](https://c2.com/doc/oopsla92.html))
 - **Deployment** focus
-    - Clear, Dockerized split between simulation and aircraft software
+    - Clear, Dockerized split between aircraft, ground, and simulation software
     - ROS2 intra-companion board messaging
     - XRCE-DDS (PX4), MAVROS (ArduPilot) autopilot-to-companion board ROS2 UDP bridge
     - GStreamer camera-to-companion board acquisition
     - Zenoh inter-vehicle ROS2 bridge, with networking over LAN (HITL) or emulated by `docker network` (SITL)
+    - Dual network—in both SITL and HITL—to separate synthetic sensor data from inter-vehicle communication
 
 [![Star History Chart](https://api.star-history.com/svg?repos=JacopoPan/aerial-autonomy-stack,robin-shaun/XTDrone,KumarRobotics/kr_autonomous_flight,ctu-mrs/mrs_uav_system,uzh-rpg/agilicious,CopterExpress/clover,caochao39/aerial_navigation_development_environment,aerostack2/aerostack2,IMRCLab/crazyswarm2&type=Date)](https://www.star-history.com/#JacopoPan/aerial-autonomy-stack&robin-shaun/XTDrone&KumarRobotics/kr_autonomous_flight&ctu-mrs/mrs_uav_system&uzh-rpg/agilicious&CopterExpress/clover&caochao39/aerial_navigation_development_environment&aerostack2/aerostack2&IMRCLab/crazyswarm2&Date&LogScale)
