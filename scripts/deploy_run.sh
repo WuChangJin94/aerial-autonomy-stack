@@ -8,7 +8,6 @@ AUTOPILOT="${AUTOPILOT:-px4}" # Options: px4 (default), ardupilot
 HEADLESS="${HEADLESS:-true}" # Options: true (default), false 
 CAMERA="${CAMERA:-true}" # Options: true (default), false
 LIDAR="${LIDAR:-true}" # Options: true (default), false
-MODE="${MODE:-}" # Options: empty (default), dev, ...
 #
 SIM_SUBNET="${SIM_SUBNET:-10.42}" # Simulation subnet (default = 10.42)
 AIR_SUBNET="${AIR_SUBNET:-10.22}" # Inter-vehicle subnet (default = 10.22)
@@ -18,23 +17,8 @@ GROUND_ID="${GROUND_ID:-101}" # Last byte of the simulation container IP (defaul
 DRONE_TYPE="${DRONE_TYPE:-quad}" # Options: quad (default), vtol
 DRONE_ID="${DRONE_ID:-1}" # Id of aircraft (default = 1)
 #
+DEV="${DEV:false}" # Options: true, false (default)
 HITL="${HITL:-false}" # Options: true, false (default)
-
-# Initialize an empty variable for the flags
-MODE_OPTS=""
-case "$MODE" in
-  dev)
-    # In dev mode, resources and workspaces are mounted from the host
-    SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
-    MODE_OPTS="--entrypoint /bin/bash"
-    MODE_OPTS+=" -v ${SCRIPT_DIR}/../aircraft/aircraft_resources/:/aas/aircraft_resources:cached"
-    MODE_OPTS+=" -v ${SCRIPT_DIR}/../aircraft/aircraft_ws/src:/aas/aircraft_ws/src:cached"
-    MODE_OPTS+=" -v ${SCRIPT_DIR}/../ground/ground_ws/src/ground_system_msgs:/aas/aircraft_ws/src/ground_system_msgs:cached"
-    ;;
-  *)
-    MODE_OPTS=""
-    ;;
-esac
 
 if [ "$HEADLESS" = "false" ]; then
   # Grant access to the X server
@@ -45,9 +29,9 @@ if [ "$HITL" = "true" ]; then
   DOCKER_RUN_FLAGS="-it --rm" # Interactive mode with auto-remove
 else
   DOCKER_RUN_FLAGS="-d -t" # Detached mode
-  if [[ "$MODE" == "dev" ]]; then
+  if [[ "$DEV" == "true" ]]; then
     echo ""
-    echo "With MODE=dev, attach directly to the bash shell:"
+    echo "With DEV=true, attach directly to the bash shell:"
     echo ""
     echo -e "\t docker exec -it aircraft-container_$DRONE_ID bash"
   else
@@ -61,6 +45,15 @@ else
   echo ""
   echo -e '\t docker stop $(docker ps -q) && docker container prune'
   echo ""
+fi
+
+# In dev mode, resources and workspaces are mounted from the host
+if [[ "$DEV" == "true" ]]; then
+  SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+  DEV_OPTS="--entrypoint /bin/bash"
+  DEV_OPTS+=" -v ${SCRIPT_DIR}/../aircraft/aircraft_resources/:/aas/aircraft_resources:cached"
+  DEV_OPTS+=" -v ${SCRIPT_DIR}/../aircraft/aircraft_ws/src:/aas/aircraft_ws/src:cached"
+  DEV_OPTS+=" -v ${SCRIPT_DIR}/../ground/ground_ws/src/ground_system_msgs:/aas/aircraft_ws/src/ground_system_msgs:cached"
 fi
 
 # Launch the aircraft container
@@ -77,11 +70,11 @@ docker run $DOCKER_RUN_FLAGS \
   --net=host \
   --privileged \
   --name aircraft-container_$DRONE_ID \
-  ${MODE_OPTS} \
+  ${DEV_OPTS} \
   aircraft-image
 
 # Check ONNX runtimes
-# MODE=dev HEADLESS=false ./deploy_run.sh
+# DEV=true HEADLESS=false ./deploy_run.sh
 # docker exec -it aircraft-container bash
 # python3 -c "import onnxruntime as ort; print(ort.__version__); print(ort.get_available_providers())"
 # tmuxinator start -p /aas/aircraft.yml.erb

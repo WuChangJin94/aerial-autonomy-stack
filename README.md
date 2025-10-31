@@ -141,11 +141,11 @@ Once flown from CLI, implemented your mission in [`MissionNode.conops_callback()
 > <details>
 > <summary><b>Development within Live Containers</b> <i>(click to expand)</i></summary>
 > 
-> Launching the `sim_run.sh` script with `MODE=dev`, does **not** start the simulation and mounts folders `[aircraft|ground|simulation]_resources`, `[aircraft|ground]_ws/src` as volumes to more easily track, commit, push changes while building and testing them within the containers:
+> Launching the `sim_run.sh` script with `DEV=true`, does **not** start the simulation and mounts folders `[aircraft|ground|simulation]_resources`, `[aircraft|ground]_ws/src` as volumes to more easily track, commit, push changes while building and testing them within the containers:
 > 
 > ```sh
 > cd ~/git/aerial-autonomy-stack/scripts
-> MODE=dev ./sim_run.sh                               # Starts one simulation-image, one ground-image, and one aircraft-image where the *_resources/ and *_ws/src/ folders are mounted from the host
+> DEV=true ./sim_run.sh                               # Starts one simulation-image, one ground-image, and one aircraft-image where the *_resources/ and *_ws/src/ folders are mounted from the host
 > ```
 > 
 > To make changes **on the host** and build them **in the aircraft and/or ground container**:

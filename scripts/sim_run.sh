@@ -8,7 +8,6 @@ AUTOPILOT="${AUTOPILOT:-px4}" # Options: px4 (default), ardupilot
 HEADLESS="${HEADLESS:-false}" # Options: true, false (default)
 CAMERA="${CAMERA:-true}" # Options: true (default), false
 LIDAR="${LIDAR:-true}" # Options: true (default), false 
-MODE="${MODE:-}" # Options: empty (default), dev, ...
 #
 SIM_SUBNET="${SIM_SUBNET:-10.42}" # Simulation subnet (default = 10.42)
 AIR_SUBNET="${AIR_SUBNET:-10.22}" # Inter-vehicle subnet (default = 10.22)
@@ -19,6 +18,7 @@ NUM_QUADS="${NUM_QUADS:-1}" # Number of quadcopters (default = 1)
 NUM_VTOLS="${NUM_VTOLS:-0}" # Number of VTOLs (default = 0)
 WORLD="${WORLD:-impalpable_greyness}" # Options: impalpable_greyness (default), apple_orchard, shibuya_crossing, swiss_town
 #
+DEV="${DEV:false}" # Options: true, false (default)
 HITL="${HITL:-false}" # Options: true, false (default)
 
 # Detect the environment (Ubuntu/GNOME, WSL, etc.)
@@ -60,32 +60,6 @@ cleanup() {
 }
 # Set trap to cleanup on script interruption (Ctrl+C, etc.)
 trap cleanup EXIT INT TERM
-
-# Initialize an empty variable for the flags
-MODE_SIM_OPTS=""
-MODE_GND_OPTS=""
-MODE_AIR_OPTS=""
-case "$MODE" in
-  dev)
-    SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
-    # In dev mode, resources and workspaces are mounted from the host
-    MODE_SIM_OPTS="--entrypoint /bin/bash"
-    MODE_SIM_OPTS+=" -v ${SCRIPT_DIR}/../simulation/simulation_resources/:/aas/simulation_resources:cached"
-    #
-    MODE_GND_OPTS="--entrypoint /bin/bash"
-    MODE_GND_OPTS+=" -v ${SCRIPT_DIR}/../ground/ground_resources/:/aas/ground_resources:cached"
-    MODE_GND_OPTS+=" -v ${SCRIPT_DIR}/../ground/ground_ws/src:/aas/ground_ws/src:cached"
-    #
-    MODE_AIR_OPTS="--entrypoint /bin/bash"
-    MODE_AIR_OPTS+=" -v ${SCRIPT_DIR}/../aircraft/aircraft_resources/:/aas/aircraft_resources:cached"
-    MODE_AIR_OPTS+=" -v ${SCRIPT_DIR}/../aircraft/aircraft_ws/src:/aas/aircraft_ws/src:cached"
-    MODE_AIR_OPTS+=" -v ${SCRIPT_DIR}/../ground/ground_ws/src/ground_system_msgs:/aas/aircraft_ws/src/ground_system_msgs:cached"
-    ;;
-  *)
-    MODE_SIM_OPTS=""
-    MODE_AIR_OPTS=""
-    ;;
-esac
 
 # Grant access to the X server
 if command -v xhost >/dev/null 2>&1; then 
@@ -139,6 +113,23 @@ XTERM_CONFIG_ARGS=(
     Ctrl Shift <Key>V: insert-selection(CLIPBOARD)'
 )
 
+# In dev mode, resources and workspaces are mounted from the host
+if [[ "$DEV" == "true" ]]; then
+  SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+  #
+  DEV_SIM_OPTS="--entrypoint /bin/bash"
+  DEV_SIM_OPTS+=" -v ${SCRIPT_DIR}/../simulation/simulation_resources/:/aas/simulation_resources:cached"
+  #
+  DEV_GND_OPTS="--entrypoint /bin/bash"
+  DEV_GND_OPTS+=" -v ${SCRIPT_DIR}/../ground/ground_resources/:/aas/ground_resources:cached"
+  DEV_GND_OPTS+=" -v ${SCRIPT_DIR}/../ground/ground_ws/src:/aas/ground_ws/src:cached"
+  #
+  DEV_AIR_OPTS="--entrypoint /bin/bash"
+  DEV_AIR_OPTS+=" -v ${SCRIPT_DIR}/../aircraft/aircraft_resources/:/aas/aircraft_resources:cached"
+  DEV_AIR_OPTS+=" -v ${SCRIPT_DIR}/../aircraft/aircraft_ws/src:/aas/aircraft_ws/src:cached"
+  DEV_AIR_OPTS+=" -v ${SCRIPT_DIR}/../ground/ground_ws/src/ground_system_msgs:/aas/aircraft_ws/src/ground_system_msgs:cached"
+fi
+
 # Launch the simulation container
 DOCKER_CMD="docker run -it --rm \
   --volume /tmp/.X11-unix:/tmp/.X11-unix:rw --device /dev/dri --gpus all \
@@ -160,7 +151,7 @@ fi
 if [[ "$DESK_ENV" == "wsl" ]]; then
   DOCKER_CMD="$DOCKER_CMD $WSL_OPTS"
 fi
-DOCKER_CMD="$DOCKER_CMD ${MODE_SIM_OPTS} simulation-image"
+DOCKER_CMD="$DOCKER_CMD ${DEV_SIM_OPTS} simulation-image"
 calculate_terminal_position 0
 xterm "${XTERM_CONFIG_ARGS[@]}" -title "Simulation" -fa Monospace -fs $FONT_SIZE -bg black -fg white -geometry "${TERM_COLS}x${TERM_ROWS}+${X_POS}+${Y_POS}" -hold -e bash -c "$DOCKER_CMD" &
 
@@ -181,7 +172,7 @@ if [[ "$HITL" == "false" ]]; then
   if [[ "$DESK_ENV" == "wsl" ]]; then
     DOCKER_CMD="$DOCKER_CMD $WSL_OPTS"
   fi
-  DOCKER_CMD="$DOCKER_CMD ${MODE_GND_OPTS} ground-image"
+  DOCKER_CMD="$DOCKER_CMD ${DEV_GND_OPTS} ground-image"
   calculate_terminal_position 1
   xterm "${XTERM_CONFIG_ARGS[@]}" -title "Ground" -fa Monospace -fs $FONT_SIZE -bg black -fg white -geometry "${TERM_COLS}x${TERM_ROWS}+${X_POS}+${Y_POS}" -hold -e bash -c "$DOCKER_CMD" &
 
@@ -210,7 +201,7 @@ if [[ "$HITL" == "false" ]]; then
       if [[ "$DESK_ENV" == "wsl" ]]; then
         DOCKER_CMD="$DOCKER_CMD $WSL_OPTS"
       fi
-      DOCKER_CMD="$DOCKER_CMD ${MODE_AIR_OPTS} aircraft-image"
+      DOCKER_CMD="$DOCKER_CMD ${DEV_AIR_OPTS} aircraft-image"
       calculate_terminal_position $(($DRONE_ID + 1))
       xterm "${XTERM_CONFIG_ARGS[@]}" -title "${drone_type^^} $DRONE_ID" -fa Monospace -fs $FONT_SIZE -bg black -fg white -geometry "${TERM_COLS}x${TERM_ROWS}+${X_POS}+${Y_POS}" -hold -e bash -c "$DOCKER_CMD" &
       DRONE_ID=$((DRONE_ID + 1))
