@@ -124,8 +124,7 @@ AUTOPILOT=px4 NUM_QUADS=1 ./sim_run.sh                                 # Or `ard
 
 In aircraft 1's Xterm terminal:
 ```sh
-ros2 run mission mission --conops yalla \
-  --ros-args -r __ns:=/Drone$DRONE_ID -p use_sim_time:=true            # This mission is a simple takeoff, followed by an orbit, and landing for any vehicle
+ros2 run mission mission --conops yalla --ros-args -r __ns:=/Drone$DRONE_ID -p use_sim_time:=true        # This mission is a simple takeoff, followed by an orbit, and landing for any vehicle
 ```
 
 Finally, in the simulation's Xterm terminal:
