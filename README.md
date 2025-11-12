@@ -119,7 +119,7 @@ Check the flight logs in the `Simulation`'s Xterm terminal:
 > ```sh
 > docker ps -a                          # List containers
 > docker stop $(docker ps -q)           # Stop all containers
-> docker container prune                # Remove all stopped containers
+> docker container prune -f             # Remove all stopped containers
 > ```
 > ```sh
 > docker images                         # List images
@@ -263,7 +263,7 @@ docker exec simulation-container bash -c " \
 
 ```sh
 sudo apt update && sudo apt install -y git git-lfs
-git lfs install
+git lfs install # IMPORTANT: without this, git will NOT download the simulation assets
 
 mkdir -p ~/git && cd ~/git
 git clone https://github.com/JacopoPan/aerial-autonomy-stack.git
