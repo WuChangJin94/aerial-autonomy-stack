@@ -325,7 +325,7 @@ HITL=true NUM_QUADS=2 SIM_SUBNET=172.30 AIR_SUBNET=10.223 ./sim_run.sh
 ```
 
 > [!NOTE]
-> Running the previous (except the 3rd) commands with `GND_CONTAINER=false` forces the Zenoh bridge over the `SIM_SUBNET`, removing the need for the `AIR_SUBNET` and the computer with IP ending in `90.101`
+> Running the previous commands (except the 3rd) with `GND_CONTAINER=false` moves the Zenoh bridge to the `SIM_SUBNET`, removing the need for the optional `AIR_SUBNET` and the computer with IP ending in `90.101`
 
 Once done, detach Tmux (and remove the containers) with `Ctrl + b`, then `d`
 
