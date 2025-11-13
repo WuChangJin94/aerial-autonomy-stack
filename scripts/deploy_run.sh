@@ -17,6 +17,9 @@ GROUND_ID="${GROUND_ID:-101}" # Last byte of the simulation container IP (defaul
 DRONE_TYPE="${DRONE_TYPE:-quad}" # Options: quad (default), vtol
 DRONE_ID="${DRONE_ID:-1}" # Id of aircraft (default = 1)
 #
+NUM_QUADS="${NUM_QUADS:-1}" # Number of quadcopters (default = 1)
+NUM_VTOLS="${NUM_VTOLS:-0}" # Number of VTOLs (default = 0)
+#
 DEV="${DEV:false}" # Options: true, false (default)
 HITL="${HITL:-false}" # Options: true, false (default)
 GND_CONTAINER="${GND_CONTAINER:-true}" # Options: true (default), false
