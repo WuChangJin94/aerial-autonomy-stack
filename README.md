@@ -92,7 +92,7 @@ ros2 run mission mission --ros-args -r __ns:=/Drone$DRONE_ID -p use_sim_time:=tr
 
 Check the flight logs in the `Simulation`'s Xterm terminal:
 ```sh
-/aas/simulation_resources/patches/plot_logs.sh                                                # Analyze the flight logs at http://10.42.90.100:5006/browse or in MAVExplorer
+/aas/simulation_resources/scripts/plot_logs.sh                                                # Analyze the flight logs at http://10.42.90.100:5006/browse or in MAVExplorer
 ```
 
 > [!TIP]
