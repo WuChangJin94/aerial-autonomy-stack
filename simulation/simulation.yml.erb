@@ -14,6 +14,7 @@
   gnd_container = ENV.fetch('GND_CONTAINER', 'true') == 'true'
 
   simulated_time = ENV.fetch('SIMULATED_TIME', 'false') == 'true'
+  as_fast_as_possible = ENV.fetch('AS_FAST_AS_POSSIBLE', 'false') == 'true'
 
   drones = []
   num_quads.times { |i| drones << { type: 'quad', index: i } }
@@ -39,6 +40,9 @@ windows:
           <% end %>
           <% unless lidar %>
           sed -i '/<sensor/,/<\/sensor>/d'  /aas/simulation_resources/aircraft_models/sensor_lidar/model.sdf &&
+          <% end %>
+          <% if as_fast_as_possible %>
+          sed -i 's/<real_time_factor>1\.0<\/real_time_factor>/<real_time_factor>0.0<\/real_time_factor>/' /aas/simulation_resources/simulation_worlds/<%= world %>.sdf &&
           <% end %>
           <% if autopilot == 'ardupilot' %>
           /aas/simulation_resources/aircraft_models/_create_ardupilot_models.sh <%= num_quads %> <%= num_vtols %>  &&
@@ -101,6 +105,9 @@ windows:
           /aas/github_apps/ardupilot/Tools/autotest/sim_vehicle.py 
           <%= vehicle_config %> --model JSON
           -I <%= sitl_instance %> --sysid <%= drone_id %>
+          <% if as_fast_as_possible %>
+          --speedup 9000
+          <% end %>
           --add-param-file=/aas/simulation_resources/aircraft_models/<%= model_name %>/ardupilot-4.6.params
           -l $(python3 /aas/simulation_resources/patches/extract_spherical_coords.py /aas/simulation_resources/simulation_worlds/<%= world %>.sdf)
           --out=udp:<%= "#{sim_subnet}.90.#{drone_id}" %>:8888
