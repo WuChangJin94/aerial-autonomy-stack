@@ -6,8 +6,8 @@ Use as:
 import os
 import time
 import argparse
-import gz.transport13
-from gz.msgs10.wind_pb2 import Wind
+import gz.transport11
+from gz.msgs8.wind_pb2 import Wind
 
 
 def main():
@@ -19,7 +19,7 @@ def main():
     
     world_name = os.environ.get('WORLD', 'default')
 
-    gz_node = gz.transport13.Node()
+    gz_node = gz.transport11.Node()
 
     pub = gz_node.advertise(f"/world/{world_name}/wind/", Wind)
     time.sleep(0.5) # Wait for subscribers

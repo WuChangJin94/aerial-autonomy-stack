@@ -4,9 +4,9 @@ Use as:
 """
 import os
 import argparse
-import gz.transport13
-from gz.msgs10.world_control_pb2 import WorldControl
-from gz.msgs10.boolean_pb2 import Boolean as GzBoolean
+import gz.transport11
+from gz.msgs8.world_control_pb2 import WorldControl
+from gz.msgs8.boolean_pb2 import Boolean as GzBoolean
 
 
 def main():
@@ -17,7 +17,7 @@ def main():
     world_name = os.environ.get('WORLD', 'default')
     autopilot = os.environ.get('AUTOPILOT', 'px4')
 
-    gz_node = gz.transport13.Node()
+    gz_node = gz.transport11.Node()
     
     req = WorldControl()
     if autopilot == 'px4':

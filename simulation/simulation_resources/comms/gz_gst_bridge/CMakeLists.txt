@@ -3,8 +3,8 @@ project(gz_gst_bridge)
 
 set(CMAKE_CXX_STANDARD 17)
 
-find_package(gz-transport13 REQUIRED)
-find_package(gz-msgs10 REQUIRED)
+find_package(gz-transport11 REQUIRED)
+find_package(gz-msgs8 REQUIRED)
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(GST REQUIRED gstreamer-1.0 gstreamer-app-1.0)
 
@@ -15,7 +15,7 @@ target_include_directories(gz_gst_bridge PUBLIC
 )
 
 target_link_libraries(gz_gst_bridge
-    gz-transport13::gz-transport13
-    gz-msgs10::gz-msgs10
+    gz-transport11::gz-transport11
+    gz-msgs8::gz-msgs8
     ${GST_LIBRARIES}
 )

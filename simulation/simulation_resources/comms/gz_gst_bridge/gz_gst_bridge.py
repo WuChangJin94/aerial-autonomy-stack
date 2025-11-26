@@ -12,8 +12,8 @@ import signal
 gi.require_version('Gst', '1.0')
 
 from gi.repository import Gst, GLib
-from gz.transport13 import Node
-from gz.msgs10.image_pb2 import Image
+from gz.transport11 import Node
+from gz.msgs8.image_pb2 import Image
 
 pipeline = None
 appsrc = None

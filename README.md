@@ -361,7 +361,7 @@ LiDAR driver https://github.com/Livox-SDK/livox_ros_driver2
 HITL/SITL architectures
 - https://docs.px4.io/main/en/simulation/
 - https://docs.px4.io/main/en/simulation/#sitl-simulation-environment
-- https://docs.px4.io/main/en/simulation/hitl.html add HITL for for Gazebo Harmonic
+- https://docs.px4.io/main/en/simulation/hitl.html add HITL for for Gazebo Fortress
 - https://ardupilot.org/dev/docs/sitl-simulator-software-in-the-loop.html#sitl-architecture
 
 ## Future Work / Ideas for Contributions
